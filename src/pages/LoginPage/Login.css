@@ -1,0 +1,153 @@
+body,
+html {
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background-color: #FFFFFF;
+  height: 100%;
+}
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.login-logo img {
+  width: 60px;
+  height: 60px;
+  display: block;
+  margin: 0 auto 10px;
+}
+
+.login-box input:not([type="checkbox"]):not([type="radio"]) {
+  width: 296px;
+  height: 56px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+  padding: 0 12px;
+  display: block;
+  margin: 0;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.login-box input[type="email"]+input[type="password"] {
+  border-top: none;
+}
+
+.firstinput {
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+}
+
+.ndinput,
+.rdinput {
+  border-radius: 0;
+}
+
+.lastinput {
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+.sumbitregister {
+  margin-top: 20px;
+}
+
+.login-btn {
+  all: unset;
+  width: 298px;
+  height: 42px;
+  background-color: #0D6EFD;
+  border: 1px solid #0D6EFD;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  margin: 20px auto 0;
+}
+
+.copyright {
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  margin-top: 24px;
+  color: #212529BF;
+  margin-top: 50px;
+}
+
+.Toastify__toast {
+  width: 140% !important;
+  max-width: 600px !important;
+  white-space: normal !important;
+  text-align: left;
+}
+
+.remember-me {
+  width: 296px;
+  margin: 10px auto 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.remember-me label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+}
+
+.checkbox1 {
+  width: 16px;
+  height: 16px;
+  accent-color: #0D6EFD;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-right: 8px;
+  border: 1px solid #DEE2E6;
+  border-radius: 4px;
+  margin-top: 10px;
+}
+
+.rememberlabel {
+  font-size: 18px;
+  font-weight: 450;
+}
+
+.rememlabel {
+  margin-left: 10px;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.register-link {
+  width: 296px;
+  line-height: 24px;
+  margin: 15px auto 0;
+  font-size: 16px;
+  letter-spacing: 0%;
+  font-weight: 400;
+  
+}
+
+.register-link a {
+  color: #0D6EFD;
+  text-decoration: none;
+}
+
+.register-link a:hover {
+  text-decoration: underline;
+}

@@ -1,0 +1,22 @@
+{
+  "users": [
+    {
+      "id": "7670",
+      "username": "PhongDu",
+      "email": "ptran4109@gmail.com",
+      "password": "123456Phong@",
+      "created_at": "2025-10-16T02:46:23.259Z",
+      "boards": [
+        {
+          "title": "asda",
+          "background": "https://images.unsplash.com/photo-1511497584788-876760111969?w=400",
+          "backgroundType": "image",
+          "isStarred": false,
+          "isClosed": false,
+          "id": "1760669982255",
+          "createdAt": "2025-10-17T02:59:42.255Z"
+        }
+      ]
+    }
+  ]
+}
