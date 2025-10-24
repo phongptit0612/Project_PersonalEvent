@@ -6,7 +6,9 @@ import "react-toastify/dist/ReactToastify.css";
 import "./Dashboard.css";
 import NewBoardModal from "./Modal/NewBoardModal";
 
-// User structure
+// ========================
+// Types
+// ========================
 interface User {
   id: number;
   username: string;
@@ -16,7 +18,6 @@ interface User {
   boards?: Board[];
 }
 
-// Board structure
 interface Board {
   id: string;
   title: string;
@@ -27,19 +28,21 @@ interface Board {
   createdAt: string;
 }
 
+// ========================
+// Component
+// ========================
 export default function Dashboard() {
   const navigate = useNavigate();
 
-  // States
+  // ---------- States ----------
   const [user, setUser] = useState<User | null>(null);
   const [boards, setBoards] = useState<Board[]>([]);
-  const [filteredBoards, setFilteredBoards] = useState<Board[]>([]);
-  const [activeFilter, setActiveFilter] = useState<string>("all");
   const [showModal, setShowModal] = useState(false);
   const [editingBoard, setEditingBoard] = useState<Board | null>(null);
   const [deletingBoard, setDeletingBoard] = useState<Board | null>(null);
 
-  // Check if user is logged in when page loads
+  // ---------- Effects ----------
+  // When the page loads, check if user is logged in
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -49,41 +52,36 @@ export default function Dashboard() {
     loadUserData(token);
   }, [navigate]);
 
-  // Filter boards whenever filter or boards change
-  useEffect(() => {
-    filterBoards();
-  }, [activeFilter, boards]);
-
-  // Load user data from server
+  // ---------- API Functions ----------
   const loadUserData = async (token: string) => {
     try {
-      const response = await axios.get(`http://localhost:3000/users/${token}`);
-      setUser(response.data);
-      setBoards(response.data.boards || []);
-    } catch (error) {
+      const res = await axios.get(`http://localhost:3000/users/${token}`);
+      setUser(res.data);
+      setBoards(res.data.boards || []);
+    } catch {
       toast.error("Failed to load user data");
       localStorage.removeItem("token");
       navigate("/login");
     }
   };
 
-  // Filter boards based on selected tab
-  const filterBoards = () => {
-    if (activeFilter === "all") {
-      setFilteredBoards(boards.filter((b) => !b.isClosed));
-    } else if (activeFilter === "starred") {
-      setFilteredBoards(boards.filter((b) => b.isStarred && !b.isClosed));
-    } else if (activeFilter === "closed") {
-      setFilteredBoards(boards.filter((b) => b.isClosed));
+  const updateBoardsOnServer = async (updatedBoards: Board[]) => {
+    if (!user) return;
+    try {
+      await axios.patch(`http://localhost:3000/users/${user.id}`, {
+        boards: updatedBoards,
+      });
+    } catch {
+      toast.error("Failed to update board");
+      const token = localStorage.getItem("token");
+      if (token) loadUserData(token);
     }
   };
 
-  // Create new board
+  // ---------- Board Handlers ----------
   const handleCreateBoard = async (
     boardData: Omit<Board, "id" | "createdAt">
   ) => {
-    if (!user) return;
-
     const newBoard: Board = {
       ...boardData,
       id: Date.now().toString(),
@@ -92,88 +90,106 @@ export default function Dashboard() {
 
     const updatedBoards = [...boards, newBoard];
     setBoards(updatedBoards);
-
-    try {
-      await axios.patch(`http://localhost:3000/users/${user.id}`, {
-        boards: updatedBoards,
-      });
-      toast.success("Board created successfully!");
-      setShowModal(false);
-    } catch (error) {
-      toast.error("Failed to create board");
-      setBoards(boards);
-    }
+    await updateBoardsOnServer(updatedBoards);
+    toast.success("Board created successfully!");
+    setShowModal(false);
   };
 
-  // Edit existing board
   const handleEditBoard = async (
     boardData: Omit<Board, "id" | "createdAt">
   ) => {
-    if (!user || !editingBoard) return;
+    if (!editingBoard) return;
 
     const updatedBoards = boards.map((b) =>
       b.id === editingBoard.id ? { ...b, ...boardData } : b
     );
-    setBoards(updatedBoards);
 
-    try {
-      await axios.patch(`http://localhost:3000/users/${user.id}`, {
-        boards: updatedBoards,
-      });
-      toast.success("Board updated successfully!");
-      setEditingBoard(null);
-    } catch (error) {
-      toast.error("Failed to update board");
-      setBoards(boards);
-    }
+    setBoards(updatedBoards);
+    await updateBoardsOnServer(updatedBoards);
+    toast.success("Board updated successfully!");
+    setEditingBoard(null);
   };
 
-  // Delete board
   const handleDeleteBoard = async () => {
-    if (!user || !deletingBoard) return;
+    if (!deletingBoard) return;
 
     const updatedBoards = boards.filter((b) => b.id !== deletingBoard.id);
     setBoards(updatedBoards);
-
-    try {
-      await axios.patch(`http://localhost:3000/users/${user.id}`, {
-        boards: updatedBoards,
-      });
-      toast.success("Board deleted successfully!");
-      setDeletingBoard(null);
-    } catch (error) {
-      toast.error("Failed to delete board");
-      setBoards(boards);
-    }
+    await updateBoardsOnServer(updatedBoards);
+    toast.success("Board deleted successfully!");
+    setDeletingBoard(null);
   };
 
-  // Star/Unstar board
   const toggleStarBoard = async (boardId: string) => {
-    if (!user) return;
-
     const updatedBoards = boards.map((b) =>
       b.id === boardId ? { ...b, isStarred: !b.isStarred } : b
     );
     setBoards(updatedBoards);
-
-    try {
-      await axios.patch(`http://localhost:3000/users/${user.id}`, {
-        boards: updatedBoards,
-      });
-    } catch (error) {
-      setBoards(boards);
-    }
+    await updateBoardsOnServer(updatedBoards);
   };
 
-  // Logout
+  // ---------- Logout ----------
   const handleLogout = () => {
     localStorage.removeItem("token");
     toast.success("Logged out successfully!");
-    setTimeout(() => {
-      navigate("/login");
-    }, 1000);
+    setTimeout(() => navigate("/login"), 1000);
   };
 
+  // ---------- Filter Boards ----------
+  const starredBoards = boards.filter((b) => b.isStarred && !b.isClosed);
+  const workspaceBoards = boards.filter((b) => !b.isClosed);
+
+  // ---------- Helper Component for Board Card ----------
+  const BoardCard = ({ board }: { board: Board }) => (
+    <div
+      key={board.id}
+      className="board-card"
+      style={{
+        background:
+          board.backgroundType === "color"
+            ? board.background
+            : `url(${board.background})`,
+        backgroundColor:
+          board.backgroundType === "color" ? board.background : undefined,
+      }}
+    >
+      <div className="board-card-title">{board.title}</div>
+
+      <div className="board-card-actions">
+        <button
+          className="board-action-btn"
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleStarBoard(board.id);
+          }}
+        >
+          {board.isStarred ? "★" : "☆"}
+        </button>
+
+        <button
+          className="board-action-btn"
+          onClick={(e) => {
+            e.stopPropagation();
+            setEditingBoard(board);
+          }}
+        >
+          Edit
+        </button>
+
+        <button
+          className="board-action-btn"
+          onClick={(e) => {
+            e.stopPropagation();
+            setDeletingBoard(board);
+          }}
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  );
+
+  // ---------- Render ----------
   if (!user) return <div>Loading...</div>;
 
   return (
@@ -188,131 +204,72 @@ export default function Dashboard() {
       <div className="dashboard-layout">
         {/* Sidebar */}
         <div className="sidebar">
-          <h3>YOUR WORKSPACES</h3>
+          <h3 className="workspaceh3">YOUR WORKSPACES</h3>
 
-          <div className="sidebar-item" onClick={() => setActiveFilter("all")}>
-            📊 Boards
+          <div className="sidebar-item">
+            <img src="/src/resources/Sidebar_Menu.png" alt="" /> Boards
           </div>
-          <div
-            className="sidebar-item"
-            onClick={() => setActiveFilter("starred")}
-          >
-            ⭐ Starred Boards
+          <div className="sidebar-item">
+            <img src="/src/resources/Sidebar_Star.png" alt="" /> Starred Boards
           </div>
-          <div
-            className="sidebar-item"
-            onClick={() => setActiveFilter("closed")}
-          >
-            🗑️ Closed Boards
+          <div className="sidebar-item">
+            <img src="/src/resources/Sidebar_Closed.png" alt="" /> Closed Boards
           </div>
 
           <div className="sidebar-divider"></div>
 
-          <div className="sidebar-item">⚙️ Settings</div>
+          <div className="sidebar-item">
+            <img src="/src/resources/Sidebar_Setting.png" alt="" /> Settings
+          </div>
           <div className="sidebar-item" onClick={handleLogout}>
-            🚪 Sign out
+            <img src="/src/resources/Sidebar_LogOut.png" alt="" /> Sign out
           </div>
         </div>
 
         {/* Main Content */}
         <div className="main-content">
+          {/* Workspaces Section */}
           <div className="section-header">
-            {activeFilter === "all" && (
-              <>
-                <span className="section-icon">
-                  <img
-                    className="icon1"
-                    src="/src/resources/menu1.png"
-                    alt="Menu"
-                  />
-                </span>
-                <h2 className="workspace">Your Workspaces</h2>
-              </>
-            )}
-
-            {activeFilter === "starred" && (
-              <>
-                <span className="section-icon">⭐</span>
-                <h2>Starred Boards</h2>
-              </>
-            )}
-
-            {activeFilter === "closed" && (
-              <>
-                <span className="section-icon">🗑️</span>
-                <h2>Closed Boards</h2>
-              </>
-            )}
+            <span className="section-icon">
+              <img
+                className="icon1"
+                src="/src/resources/menu1.png"
+                alt="Menu"
+              />
+            </span>
+            <h2 className="workspace">Your Workspaces</h2>
           </div>
-          {/* ✨ New Section: Starred Boards */}
+          <hr className="section-divider" />
+
+          <div className="board-grid">
+            {/* Create New Board */}
+            <div
+              className="create-board-card"
+              onClick={() => setShowModal(true)}
+            >
+              <span>+ Create new board</span>
+            </div>
+
+            {/* Show Workspace Boards */}
+            {workspaceBoards.map((board) => (
+              <BoardCard key={board.id} board={board} />
+            ))}
+          </div>
+
+          {/* Starred Boards Section */}
           <div className="section-header" style={{ marginTop: "40px" }}>
             <span className="section-icon">⭐</span>
             <h2>Starred Boards</h2>
           </div>
-          {/* Boards Grid */}
-          <div className="board-grid">
-            {activeFilter !== "closed" && (
-              <div
-                className="create-board-card"
-                onClick={() => setShowModal(true)}
-              >
-                <span>+ Create new board</span>
-              </div>
-            )}
+          <hr className="section-divider" />
 
-            {filteredBoards.map((board) => (
-              <div
-                key={board.id}
-                className="board-card"
-                style={{
-                  background:
-                    board.backgroundType === "color"
-                      ? board.background
-                      : `url(${board.background})`,
-                  backgroundColor:
-                    board.backgroundType === "color"
-                      ? board.background
-                      : undefined,
-                }}
-              >
-                <div className="board-card-title">{board.title}</div>
-
-                <div className="board-card-actions">
-                  {!board.isClosed && (
-                    <>
-                      <button
-                        className="board-action-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleStarBoard(board.id);
-                        }}
-                      >
-                        {board.isStarred ? "★" : "☆"}
-                      </button>
-                      <button
-                        className="board-action-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setEditingBoard(board);
-                        }}
-                      >
-                        Edit
-                      </button>
-                    </>
-                  )}
-                  <button
-                    className="board-action-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setDeletingBoard(board);
-                    }}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+          {starredBoards.length > 0 && (
+            <div className="board-grid">
+              {starredBoards.map((board) => (
+                <BoardCard key={board.id} board={board} />
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -329,6 +286,7 @@ export default function Dashboard() {
         />
       )}
 
+      {/* Delete Confirmation */}
       {deletingBoard && (
         <div className="modal-overlay" onClick={() => setDeletingBoard(null)}>
           <div

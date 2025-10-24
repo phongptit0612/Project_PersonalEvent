@@ -8,13 +8,22 @@
       "created_at": "2025-10-16T02:46:23.259Z",
       "boards": [
         {
-          "title": "asda",
-          "background": "https://images.unsplash.com/photo-1511497584788-876760111969?w=400",
+          "title": "Hello 2",
+          "background": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400",
           "backgroundType": "image",
-          "isStarred": false,
+          "isStarred": true,
           "isClosed": false,
-          "id": "1760669982255",
-          "createdAt": "2025-10-17T02:59:42.255Z"
+          "id": "1760708783874",
+          "createdAt": "2025-10-17T13:46:23.874Z"
+        },
+        {
+          "title": "asda",
+          "background": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400",
+          "backgroundType": "image",
+          "isStarred": true,
+          "isClosed": false,
+          "id": "1760709693932",
+          "createdAt": "2025-10-17T14:01:33.932Z"
         }
       ]
     }
