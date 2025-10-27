@@ -237,17 +237,52 @@ export default function Dashboard() {
                 alt="Menu"
               />
             </span>
-            <h2 className="workspace">Your Workspaces</h2>
+            <h2 className="workspace">Your Workspaces </h2>
+            <span className="leftbar-container">
+              <div className="share-box">Share</div>
+              <div className="export-box">Export</div>
+              <div className="week-box">
+                <div className="custom-dropdown">
+                  <div className="dropdown-selected">
+                    <img
+                      src="/src/resources/Calendar.png"
+                      alt="Calendar"
+                      className="calendar-icon"
+                    />
+                    <span className="text-sure">This week</span>
+                    <span className="dropdown-arrow">▼</span>
+                  </div>
+                  <div className="dropdown-options">
+                    <div className="dropdown-option" data-value="thisWeek">
+                      <img
+                        src="/src/resources/Calendar.png"
+                        alt="Calendar"
+                        className="calendar-icon"
+                      />
+                      This week
+                    </div>
+                    <div className="dropdown-option" data-value="lastWeek">
+                      Last week
+                    </div>
+                    <div className="dropdown-option" data-value="thisMonth">
+                      This month
+                    </div>
+                    <div className="dropdown-option" data-value="lastMonth">
+                      Last month
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </span>
           </div>
           <hr className="section-divider" />
-
           <div className="board-grid">
             {/* Create New Board */}
             <div
               className="create-board-card"
               onClick={() => setShowModal(true)}
             >
-              <span>+ Create new board</span>
+              <span className="createnewboard">Create new board</span>
             </div>
 
             {/* Show Workspace Boards */}
@@ -258,8 +293,10 @@ export default function Dashboard() {
 
           {/* Starred Boards Section */}
           <div className="section-header" style={{ marginTop: "40px" }}>
-            <span className="section-icon">⭐</span>
-            <h2>Starred Boards</h2>
+            <span className="section-icon">
+              <img src="/src/resources/Black-star.png" alt="" />
+            </span>
+            <h2 className="starred">Starred Boards</h2>
           </div>
           <hr className="section-divider" />
 
@@ -293,33 +330,22 @@ export default function Dashboard() {
             className="modal-content confirm-modal"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="modal-header">
-              <h2>Confirm Delete</h2>
-              <button
-                className="modal-close"
-                onClick={() => setDeletingBoard(null)}
-              >
-                ×
+            <div className="modal-icon">
+              <img src="/src/resources/Border.png" alt="" />
+            </div>
+
+            <h2>Are you sure?</h2>
+            <p>You won't be able to revert this!</p>
+
+            <div className="modal-buttons">
+              <button className="btn btn-delete" onClick={handleDeleteBoard}>
+                Yes, delete it!
               </button>
-            </div>
-
-            <div className="modal-body">
-              <p>
-                Are you sure you want to delete "{deletingBoard.title}"?
-                <br />
-                This action cannot be undone.
-              </p>
-            </div>
-
-            <div className="modal-footer">
               <button
-                className="btn btn-cancel"
+                className="btn btn-cancel2"
                 onClick={() => setDeletingBoard(null)}
               >
                 Cancel
-              </button>
-              <button className="btn btn-primary" onClick={handleDeleteBoard}>
-                Delete
               </button>
             </div>
           </div>
