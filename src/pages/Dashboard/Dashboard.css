@@ -220,13 +220,13 @@ html {
     font-weight: 500;
     padding: 10px;
     width: 154.77999877929688;
-        height: 38;
-        top: 46px;
-        left: 57.61px;
-        opacity: 1;
-        border-width: 1px;
-        border-radius: 6px;
-        border: 1px solid #6C757D
+    height: 38;
+    top: 46px;
+    left: 57.61px;
+    opacity: 1;
+    border-width: 1px;
+    border-radius: 6px;
+    border: 1px solid #6C757D
 }
 
 .logout-btn {
@@ -341,7 +341,7 @@ html {
 .custom-dropdown {
     position: relative;
     display: inline-block;
-    width: 140px;
+    width: 130px;
     height: 34px;
 }
 

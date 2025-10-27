@@ -49,6 +49,19 @@ export default function Dashboard() {
       navigate("/login");
       return;
     }
+
+    const loadUserData = async (token: string) => {
+      try {
+        const res = await axios.get(`http://localhost:3000/users/${token}`);
+        setUser(res.data);
+        setBoards(res.data.boards || []);
+      } catch {
+        toast.error("Failed to load user data");
+        localStorage.removeItem("token");
+        navigate("/login");
+      }
+    };
+
     loadUserData(token);
   }, [navigate]);
 
@@ -277,6 +290,11 @@ export default function Dashboard() {
           </div>
           <hr className="section-divider" />
           <div className="board-grid">
+            {/* Show Workspace Boards */}
+            {workspaceBoards.map((board) => (
+              <BoardCard key={board.id} board={board} />
+            ))}
+
             {/* Create New Board */}
             <div
               className="create-board-card"
@@ -284,11 +302,6 @@ export default function Dashboard() {
             >
               <span className="createnewboard">Create new board</span>
             </div>
-
-            {/* Show Workspace Boards */}
-            {workspaceBoards.map((board) => (
-              <BoardCard key={board.id} board={board} />
-            ))}
           </div>
 
           {/* Starred Boards Section */}
