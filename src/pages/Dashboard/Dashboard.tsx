@@ -1,14 +1,20 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./Dashboard.css";
 import NewBoardModal from "./Modal/NewBoardModal";
+import { useAppDispatch, useAppSelector } from "../../stores/hook";
+import {
+  setBoards,
+  addBoard,
+  updateBoard,
+  deleteBoard,
+  toggleStar,
+} from "../../stores/boardSlice";
 
-// ========================
 // Types
-// ========================
 interface User {
   id: number;
   username: string;
@@ -28,55 +34,37 @@ interface Board {
   createdAt: string;
 }
 
-// ========================
 // Component
-// ========================
 export default function Dashboard() {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+
+  // Get boards from Redux store instead of local state
+  const boards = useAppSelector((state) => state.boards.boards);
 
   // ---------- States ----------
   const [user, setUser] = useState<User | null>(null);
-  const [boards, setBoards] = useState<Board[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [editingBoard, setEditingBoard] = useState<Board | null>(null);
   const [deletingBoard, setDeletingBoard] = useState<Board | null>(null);
 
-  // ---------- Effects ----------
-  // When the page loads, check if user is logged in
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-
-    const loadUserData = async (token: string) => {
+  // ---------- API Functions ----------
+  const loadUserData = useCallback(
+    async (token: string) => {
       try {
         const res = await axios.get(`http://localhost:3000/users/${token}`);
         setUser(res.data);
-        setBoards(res.data.boards || []);
+
+        // Update Redux with boards from server
+        dispatch(setBoards(res.data.boards || []));
       } catch {
         toast.error("Failed to load user data");
         localStorage.removeItem("token");
         navigate("/login");
       }
-    };
-
-    loadUserData(token);
-  }, [navigate]);
-
-  // ---------- API Functions ----------
-  const loadUserData = async (token: string) => {
-    try {
-      const res = await axios.get(`http://localhost:3000/users/${token}`);
-      setUser(res.data);
-      setBoards(res.data.boards || []);
-    } catch {
-      toast.error("Failed to load user data");
-      localStorage.removeItem("token");
-      navigate("/login");
-    }
-  };
+    },
+    [dispatch, navigate]
+  );
 
   const updateBoardsOnServer = async (updatedBoards: Board[]) => {
     if (!user) return;
@@ -91,6 +79,17 @@ export default function Dashboard() {
     }
   };
 
+  // ---------- Effects ----------
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    loadUserData(token);
+  }, [navigate, loadUserData]);
+
   // ---------- Board Handlers ----------
   const handleCreateBoard = async (
     boardData: Omit<Board, "id" | "createdAt">
@@ -101,9 +100,13 @@ export default function Dashboard() {
       createdAt: new Date().toISOString(),
     };
 
+    // 1. Update Redux first
+    dispatch(addBoard(newBoard));
+
+    // 2. Update server
     const updatedBoards = [...boards, newBoard];
-    setBoards(updatedBoards);
     await updateBoardsOnServer(updatedBoards);
+
     toast.success("Board created successfully!");
     setShowModal(false);
   };
@@ -113,12 +116,20 @@ export default function Dashboard() {
   ) => {
     if (!editingBoard) return;
 
-    const updatedBoards = boards.map((b) =>
-      b.id === editingBoard.id ? { ...b, ...boardData } : b
-    );
+    const updatedBoard: Board = {
+      ...editingBoard,
+      ...boardData,
+    };
 
-    setBoards(updatedBoards);
+    // 1. Update Redux first
+    dispatch(updateBoard(updatedBoard));
+
+    // 2. Update server
+    const updatedBoards = boards.map((b) =>
+      b.id === editingBoard.id ? updatedBoard : b
+    );
     await updateBoardsOnServer(updatedBoards);
+
     toast.success("Board updated successfully!");
     setEditingBoard(null);
   };
@@ -126,18 +137,25 @@ export default function Dashboard() {
   const handleDeleteBoard = async () => {
     if (!deletingBoard) return;
 
+    // 1. Update Redux first
+    dispatch(deleteBoard(deletingBoard.id));
+
+    // 2. Update server
     const updatedBoards = boards.filter((b) => b.id !== deletingBoard.id);
-    setBoards(updatedBoards);
     await updateBoardsOnServer(updatedBoards);
+
     toast.success("Board deleted successfully!");
     setDeletingBoard(null);
   };
 
   const toggleStarBoard = async (boardId: string) => {
+    // 1. Update Redux first
+    dispatch(toggleStar(boardId));
+
+    // 2. Update server
     const updatedBoards = boards.map((b) =>
       b.id === boardId ? { ...b, isStarred: !b.isStarred } : b
     );
-    setBoards(updatedBoards);
     await updateBoardsOnServer(updatedBoards);
   };
 
