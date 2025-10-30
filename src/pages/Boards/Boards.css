@@ -1,8 +1,5 @@
 /* Board specific styles */
-.sidebar-item.active {
-    background-color: #e4f2ff;
-    border-right: 3px solid #0079bf;
-}
+
 
 .your-boards-section {
     display: flex;
@@ -51,10 +48,10 @@
 /* Board Main Content */
 .board-main {
     flex: 1;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: calc(100vh - 60px);
     padding: 20px;
     overflow-x: auto;
+    background-color: white;
 }
 
 /* Board Header */
@@ -62,7 +59,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
 }
 
 .board-header-left {
@@ -72,56 +69,59 @@
 }
 
 .board-title {
-    color: white;
+    color: #172B4D;
     font-size: 18px;
     font-weight: 600;
     margin: 0;
 }
 
 .star-btn {
-    background: rgba(255, 255, 255, 0.3);
-    border: none;
-    color: white;
+    color: #172B4D;
     font-size: 20px;
-    padding: 5px 10px;
-    border-radius: 3px;
     cursor: pointer;
-}
-
-.star-btn:hover {
-    background: rgba(255, 255, 255, 0.4);
 }
 
 .board-header-right {
     display: flex;
     gap: 8px;
+    font-size: 16px;
 }
 
 .board-btn {
-    background: rgba(255, 255, 255, 0.3);
     border: none;
-    color: white;
-    padding: 8px 15px;
+    color: #172b4d;
+    padding: 6px 12px;
     border-radius: 3px;
     cursor: pointer;
     font-size: 14px;
+    font-weight: 400;
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
 }
 
 .board-btn:hover {
-    background: rgba(255, 255, 255, 0.4);
+    background: #091e4224;
 }
 
 .board-btn img {
     width: 16px;
     height: 16px;
-    filter: brightness(0) invert(1);
 }
+
+.board-btn-board {
+width: 85.08999633789062px;
+    height: 32px;
+    left: 355px;
+    opacity: 1;
+    border-radius: 3px;}
 
 .filters-btn {
     margin-left: auto;
+}
+
+.board-btn.filters-btn {
+    margin-left: 600px;
 }
 
 /* Board Lists */
@@ -259,20 +259,19 @@
 
 /* Add List */
 .add-list-btn {
-    background: rgba(255, 255, 255, 0.3);
+width: 272px;
+    height: 44px;
+    top: 101px;
+    left: 602px;
+    opacity: 1;
+    border-radius: 12px;
+    background: #F1F2F4;
     border: none;
-    color: white;
-    padding: 10px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
-    width: 272px;
-    min-width: 272px;
-    text-align: left;
 }
 
 .add-list-btn:hover {
-    background: rgba(255, 255, 255, 0.4);
+    background: #ebecf0;
+    cursor: pointer;
 }
 
 .add-list-form {

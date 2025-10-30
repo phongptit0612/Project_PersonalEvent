@@ -12,6 +12,7 @@ import {
   updateBoard,
   deleteBoard,
   toggleStar,
+  setCurrentBoardId,
 } from "../../stores/boardSlice";
 
 // Types
@@ -24,6 +25,18 @@ interface User {
   boards?: Board[];
 }
 
+interface Task {
+  id: string;
+  title: string;
+  isCompleted: boolean;
+}
+
+interface List {
+  id: string;
+  title: string;
+  tasks: Task[];
+}
+
 interface Board {
   id: string;
   title: string;
@@ -32,6 +45,7 @@ interface Board {
   isStarred: boolean;
   isClosed: boolean;
   createdAt: string;
+  lists: List[];
 }
 
 // Component
@@ -55,8 +69,14 @@ export default function Dashboard() {
         const res = await axios.get(`http://localhost:3000/users/${token}`);
         setUser(res.data);
 
+        // Ensure all boards have lists array
+        const boardsWithLists = (res.data.boards || []).map((board: Board) => ({
+          ...board,
+          lists: board.lists || [],
+        }));
+
         // Update Redux with boards from server
-        dispatch(setBoards(res.data.boards || []));
+        dispatch(setBoards(boardsWithLists));
       } catch {
         toast.error("Failed to load user data");
         localStorage.removeItem("token");
@@ -92,12 +112,13 @@ export default function Dashboard() {
 
   // ---------- Board Handlers ----------
   const handleCreateBoard = async (
-    boardData: Omit<Board, "id" | "createdAt">
+    boardData: Omit<Board, "id" | "createdAt" | "lists">
   ) => {
     const newBoard: Board = {
       ...boardData,
       id: Date.now().toString(),
       createdAt: new Date().toISOString(),
+      lists: [], // Initialize with empty lists
     };
 
     // 1. Update Redux first
@@ -112,7 +133,7 @@ export default function Dashboard() {
   };
 
   const handleEditBoard = async (
-    boardData: Omit<Board, "id" | "createdAt">
+    boardData: Omit<Board, "id" | "createdAt" | "lists">
   ) => {
     if (!editingBoard) return;
 
@@ -159,6 +180,11 @@ export default function Dashboard() {
     await updateBoardsOnServer(updatedBoards);
   };
 
+  const handleBoardClick = (boardId: string) => {
+    dispatch(setCurrentBoardId(boardId));
+    navigate("/board");
+  };
+
   // ---------- Logout ----------
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -182,7 +208,9 @@ export default function Dashboard() {
             : `url(${board.background})`,
         backgroundColor:
           board.backgroundType === "color" ? board.background : undefined,
+        cursor: "pointer",
       }}
+      onClick={() => handleBoardClick(board.id)}
     >
       <div className="board-card-title">{board.title}</div>
 
@@ -241,7 +269,7 @@ export default function Dashboard() {
         <div className="sidebar">
           <h3 className="workspaceh3">YOUR WORKSPACES</h3>
 
-          <div className="sidebar-item" onClick={() => navigate("/board")}>
+          <div className="sidebar-item">
             <img src="/src/resources/Sidebar_Menu.png" alt="" /> Boards
           </div>
           <div className="sidebar-item">

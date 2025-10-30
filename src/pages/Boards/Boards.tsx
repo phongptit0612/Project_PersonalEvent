@@ -1,103 +1,277 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
-import { useAppSelector } from "../../stores/hook";
+import { useAppSelector, useAppDispatch } from "../../stores/hook";
+import {
+  addList,
+  updateList,
+  deleteList,
+  addTask,
+  updateTask,
+  deleteTask,
+  toggleStar,
+  setBoards,
+} from "../../stores/boardSlice";
+import axios from "axios";
+import ConfirmDeleteModal from "./Modal/ConfirmDeleteModal";
 import "../Dashboard/Dashboard.css";
 import "./Boards.css";
 
-interface Card {
+// ========================================
+// DATA TYPES
+// ========================================
+interface Task {
   id: string;
   title: string;
-  description?: string;
+  isCompleted: boolean;
 }
 
 interface List {
   id: string;
   title: string;
-  cards: Card[];
+  tasks: Task[];
 }
 
+interface Board {
+  id: string;
+  title: string;
+  background: string;
+  backgroundType: "image" | "color";
+  isStarred: boolean;
+  isClosed: boolean;
+  createdAt: string;
+  lists: List[];
+}
+
+interface User {
+  id: string;
+  boards: Board[];
+}
+
+// ========================================
+// MAIN COMPONENT
+// ========================================
 export default function Board() {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+
+  // Get current board from Redux
   const boards = useAppSelector((state) => state.boards.boards);
+  const currentBoardId = useAppSelector((state) => state.boards.currentBoardId);
+  const currentBoard = boards.find((b) => b.id === currentBoardId);
 
-  const [lists, setLists] = useState<List[]>([
-    {
-      id: "1",
-      title: "Todo",
-      cards: [
-        { id: "1", title: "Thuê DJ" },
-        { id: "2", title: "Lên kịch bản chương trình" },
-        { id: "3", title: "Chuẩn bị lịch" },
-        { id: "4", title: "Kịch bản" },
-        { id: "5", title: "Thuê MC" },
-      ],
-    },
-    {
-      id: "2",
-      title: "In progress",
-      cards: [],
-    },
-  ]);
+  // User and loading state
+  const [user, setUser] = useState<User | null>(null);
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
 
-  const [newListTitle, setNewListTitle] = useState("");
-  const [showAddList, setShowAddList] = useState(false);
-  const [newCardTitles, setNewCardTitles] = useState<{ [key: string]: string }>(
-    {}
-  );
-  const [showAddCard, setShowAddCard] = useState<{ [key: string]: boolean }>(
-    {}
-  );
+  // List editing states
+  const [isAddingList, setIsAddingList] = useState(false);
+  const [newListName, setNewListName] = useState("");
+  const [listBeingEdited, setListBeingEdited] = useState<List | null>(null);
+  const [listToDelete, setListToDelete] = useState<string | null>(null);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
+  // Task editing states
+  const [showTaskInput, setShowTaskInput] = useState<{
+    [listId: string]: boolean;
+  }>({});
+  const [newTaskNames, setNewTaskNames] = useState<{
+    [listId: string]: string;
+  }>({});
+  const [taskBeingEdited, setTaskBeingEdited] = useState<{
+    task: Task;
+    listId: string;
+  } | null>(null);
+  const [taskToDelete, setTaskToDelete] = useState<{
+    task: Task;
+    listId: string;
+  } | null>(null);
+
+  // ========================================
+  // LOAD DATA WHEN PAGE OPENS
+  // ========================================
   useEffect(() => {
+    // Get user data from server
+    const loadUserFromServer = async (token: string) => {
+      try {
+        const response = await axios.get(
+          `http://localhost:3000/users/${token}`
+        );
+        setUser(response.data);
+        dispatch(setBoards(response.data.boards || []));
+        setIsFirstLoad(false);
+      } catch {
+        toast.error("Could not load your data");
+        localStorage.removeItem("token");
+        navigate("/login");
+      }
+    };
+
     const token = localStorage.getItem("token");
     if (!token) {
       navigate("/login");
+      return;
     }
-  }, [navigate]);
+    loadUserFromServer(token);
+  }, [navigate, dispatch]);
 
-  const handleLogout = () => {
+  // ========================================
+  // AUTO-SAVE TO SERVER
+  // ========================================
+  useEffect(() => {
+    // Save boards to server
+    const saveToServer = async (updatedBoards: Board[]) => {
+      if (!user) return;
+      try {
+        await axios.patch(`http://localhost:3000/users/${user.id}`, {
+          boards: updatedBoards,
+        });
+      } catch {
+        toast.error("Could not save changes");
+      }
+    };
+
+    // Only save after first load is complete
+    if (!isFirstLoad && user) {
+      saveToServer(boards);
+    }
+  }, [boards, isFirstLoad, user]);
+
+  // ========================================
+  // LOGOUT
+  // ========================================
+  const logout = () => {
     localStorage.removeItem("token");
-    toast.success("Logged out successfully!");
+    toast.success("Logged out!");
     setTimeout(() => navigate("/login"), 1000);
   };
 
-  const handleAddList = () => {
-    if (!newListTitle.trim()) return;
+  // ========================================
+  // STAR/UNSTAR BOARD
+  // ========================================
+  const starBoard = () => {
+    if (currentBoardId) {
+      dispatch(toggleStar(currentBoardId));
+    }
+  };
+
+  // ========================================
+  // LIST FUNCTIONS
+  // ========================================
+
+  // Create new list
+  const createList = () => {
+    if (!newListName.trim()) {
+      toast.error("Please enter a list name");
+      return;
+    }
+    if (!currentBoardId) return;
 
     const newList: List = {
       id: Date.now().toString(),
-      title: newListTitle,
-      cards: [],
+      title: newListName,
+      tasks: [],
     };
 
-    setLists([...lists, newList]);
-    setNewListTitle("");
-    setShowAddList(false);
+    dispatch(addList({ boardId: currentBoardId, list: newList }));
+    setNewListName("");
+    setIsAddingList(false);
+    toast.success("List created!");
   };
 
-  const handleAddCard = (listId: string) => {
-    const cardTitle = newCardTitles[listId];
-    if (!cardTitle?.trim()) return;
+  // Save edited list title
+  const saveListTitle = (newTitle: string) => {
+    if (!listBeingEdited || !currentBoardId) return;
 
-    const newCard: Card = {
+    const updated: List = { ...listBeingEdited, title: newTitle };
+    dispatch(updateList({ boardId: currentBoardId, list: updated }));
+    setListBeingEdited(null);
+    toast.success("List updated!");
+  };
+
+  // Delete list
+  const deleteListConfirmed = () => {
+    if (!listToDelete || !currentBoardId) return;
+
+    dispatch(deleteList({ boardId: currentBoardId, listId: listToDelete }));
+    setListToDelete(null);
+    toast.success("List deleted!");
+  };
+
+  // ========================================
+  // TASK FUNCTIONS
+  // ========================================
+
+  // Create new task in a list
+  const createTask = (listId: string) => {
+    const taskName = newTaskNames[listId];
+    if (!taskName?.trim()) {
+      toast.error("Please enter a task name");
+      return;
+    }
+    if (!currentBoardId) return;
+
+    const newTask: Task = {
       id: Date.now().toString(),
-      title: cardTitle,
+      title: taskName,
+      isCompleted: false,
     };
 
-    setLists(
-      lists.map((list) =>
-        list.id === listId ? { ...list, cards: [...list.cards, newCard] } : list
-      )
-    );
-
-    setNewCardTitles({ ...newCardTitles, [listId]: "" });
-    setShowAddCard({ ...showAddCard, [listId]: false });
+    dispatch(addTask({ boardId: currentBoardId, listId, task: newTask }));
+    setNewTaskNames({ ...newTaskNames, [listId]: "" });
+    setShowTaskInput({ ...showTaskInput, [listId]: false });
+    toast.success("Task created!");
   };
 
+  // Save edited task title
+  const saveTaskTitle = (newTitle: string) => {
+    if (!taskBeingEdited || !currentBoardId) return;
+
+    const updated: Task = { ...taskBeingEdited.task, title: newTitle };
+    dispatch(
+      updateTask({
+        boardId: currentBoardId,
+        listId: taskBeingEdited.listId,
+        task: updated,
+      })
+    );
+    setTaskBeingEdited(null);
+    toast.success("Task updated!");
+  };
+
+  // Delete task
+  const deleteTaskConfirmed = () => {
+    if (!taskToDelete || !currentBoardId) return;
+
+    dispatch(
+      deleteTask({
+        boardId: currentBoardId,
+        listId: taskToDelete.listId,
+        taskId: taskToDelete.task.id,
+      })
+    );
+    setTaskToDelete(null);
+    toast.success("Task deleted!");
+  };
+
+  // ========================================
+  // RENDER: ERROR STATE
+  // ========================================
+  if (!currentBoard) {
+    return (
+      <div style={{ padding: "20px", textAlign: "center" }}>
+        <p>No board selected. Please go back to dashboard.</p>
+        <button onClick={() => navigate("/dashboard")}>Go to Dashboard</button>
+      </div>
+    );
+  }
+
+  // ========================================
+  // RENDER: MAIN UI
+  // ========================================
   return (
     <div>
-      {/* Navbar */}
+      {/* Top Bar */}
       <div className="navbar">
         <div
           className="navbar-logo"
@@ -109,7 +283,7 @@ export default function Board() {
       </div>
 
       <div className="dashboard-layout">
-        {/* Sidebar */}
+        {/* Left Side Menu */}
         <div className="sidebar">
           <h3 className="workspaceh3">YOUR WORKSPACES</h3>
 
@@ -128,7 +302,7 @@ export default function Board() {
           <div className="sidebar-item">
             <img src="/src/resources/Sidebar_Setting.png" alt="" /> Settings
           </div>
-          <div className="sidebar-item" onClick={handleLogout}>
+          <div className="sidebar-item" onClick={logout}>
             <img src="/src/resources/Sidebar_LogOut.png" alt="" /> Sign out
           </div>
 
@@ -139,6 +313,7 @@ export default function Board() {
             <button className="add-board-btn">+</button>
           </div>
 
+          {/* Show first 4 boards */}
           {boards.slice(0, 4).map((board) => (
             <div key={board.id} className="sidebar-board-item">
               <div
@@ -155,49 +330,238 @@ export default function Board() {
           ))}
         </div>
 
-        {/* Main Board Content */}
+        {/* Main Board Area */}
         <div className="board-main">
           {/* Board Header */}
           <div className="board-header">
             <div className="board-header-left">
-              <h2 className="board-title">Tổ chức sự kiện Year-end party !</h2>
-              <button className="star-btn">☆</button>
+              <h2 className="board-title">{currentBoard.title}</h2>
+              <span className="star-btn" onClick={starBoard}>
+                {currentBoard.isStarred ? "★" : "☆"}
+              </span>
             </div>
             <div className="board-header-right">
-              <button className="board-btn">
-                <img src="/src/resources/Sidebar_Menu.png" alt="" /> Board
-              </button>
-              <button className="board-btn">Table</button>
-              <button className="board-btn">Close this board</button>
-              <button className="board-btn filters-btn">Filters</button>
+              <span className="board-btn-board">
+                <img src="/src/resources/Link - Board.png" alt="" />
+              </span>
+              <span className="board-btn">
+                <img src="/src/resources/List.png" alt="" />
+                Table
+              </span>
+              <span className="board-btn">
+                <img src="/src/resources/Close this.png" alt="" />
+                Close this board
+              </span>
+              <span className="board-btn filters-btn">
+                <img src="/src/resources/Img - Filter cards.png" alt="" />
+                Filters
+              </span>
             </div>
           </div>
 
-          {/* Board Lists */}
+          {/* Lists Area */}
           <div className="board-lists-container">
-            {lists.map((list) => (
+            {/* Show each list */}
+            {currentBoard.lists?.map((list) => (
               <div key={list.id} className="board-list">
+                {/* List Title */}
                 <div className="list-header">
-                  <h3>{list.title}</h3>
-                  <button className="list-menu-btn">⋯</button>
+                  {listBeingEdited?.id === list.id ? (
+                    // Editing mode
+                    <input
+                      type="text"
+                      value={listBeingEdited.title}
+                      onChange={(e) =>
+                        setListBeingEdited({
+                          ...listBeingEdited,
+                          title: e.target.value,
+                        })
+                      }
+                      onBlur={() => saveListTitle(listBeingEdited.title)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter")
+                          saveListTitle(listBeingEdited.title);
+                        if (e.key === "Escape") setListBeingEdited(null);
+                      }}
+                      autoFocus
+                      className="list-title-input"
+                    />
+                  ) : (
+                    // Normal mode
+                    <>
+                      <h3>{list.title}</h3>
+                      <div
+                        style={{
+                          position: "relative",
+                          display: "inline-block",
+                        }}
+                      >
+                        <button
+                          className="list-menu-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenMenuId(
+                              openMenuId === list.id ? null : list.id
+                            );
+                          }}
+                        >
+                          ⋯
+                        </button>
+
+                        {/* Menu dropdown */}
+                        {openMenuId === list.id && (
+                          <div
+                            tabIndex={0}
+                            onBlur={() => setOpenMenuId(null)}
+                            style={{
+                              position: "absolute",
+                              top: "28px",
+                              right: 0,
+                              background: "#fff",
+                              border: "1px solid #ddd",
+                              borderRadius: 4,
+                              boxShadow: "0 2px 6px rgba(0,0,0,0.12)",
+                              zIndex: 10,
+                              minWidth: 120,
+                              padding: "6px 0",
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <button
+                              onClick={() => {
+                                setListBeingEdited({ ...list });
+                                setOpenMenuId(null);
+                              }}
+                              style={{
+                                display: "block",
+                                width: "100%",
+                                padding: "8px 12px",
+                                textAlign: "left",
+                                background: "none",
+                                border: "none",
+                                cursor: "pointer",
+                              }}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => {
+                                setListToDelete(list.id);
+                                setOpenMenuId(null);
+                              }}
+                              style={{
+                                display: "block",
+                                width: "100%",
+                                padding: "8px 12px",
+                                textAlign: "left",
+                                background: "none",
+                                border: "none",
+                                cursor: "pointer",
+                                color: "#eb5a46",
+                              }}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
                 </div>
 
+                {/* Tasks in this list */}
                 <div className="list-cards">
-                  {list.cards.map((card) => (
-                    <div key={card.id} className="board-card-item">
-                      {card.title}
+                  {list.tasks?.map((task) => (
+                    <div
+                      key={task.id}
+                      className="board-card-item"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        textDecoration: task.isCompleted
+                          ? "line-through"
+                          : "none",
+                        opacity: task.isCompleted ? 0.6 : 1,
+                      }}
+                    >
+                      {taskBeingEdited?.task.id === task.id &&
+                      taskBeingEdited.listId === list.id ? (
+                        // Editing task
+                        <input
+                          type="text"
+                          value={taskBeingEdited.task.title}
+                          onChange={(e) =>
+                            setTaskBeingEdited({
+                              ...taskBeingEdited,
+                              task: {
+                                ...taskBeingEdited.task,
+                                title: e.target.value,
+                              },
+                            })
+                          }
+                          onBlur={() =>
+                            saveTaskTitle(taskBeingEdited.task.title)
+                          }
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter")
+                              saveTaskTitle(taskBeingEdited.task.title);
+                            if (e.key === "Escape") setTaskBeingEdited(null);
+                          }}
+                          autoFocus
+                          style={{
+                            flex: 1,
+                            marginRight: "8px",
+                            padding: "4px 6px",
+                            border: "1px solid #ccc",
+                            borderRadius: "4px",
+                          }}
+                        />
+                      ) : (
+                        // Normal task display
+                        <div
+                          onClick={() =>
+                            setTaskBeingEdited({ task, listId: list.id })
+                          }
+                          style={{ cursor: "pointer", flex: 1 }}
+                        >
+                          {task.isCompleted && (
+                            <span style={{ marginRight: "8px" }}>✓</span>
+                          )}
+                          {task.title}
+                        </div>
+                      )}
+
+                      {/* Delete button */}
+                      <button
+                        onClick={() =>
+                          setTaskToDelete({ task, listId: list.id })
+                        }
+                        style={{
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          fontSize: "16px",
+                          color: "#eb5a46",
+                          marginLeft: "8px",
+                        }}
+                        title="Delete task"
+                      >
+                        ✕
+                      </button>
                     </div>
                   ))}
                 </div>
 
-                {showAddCard[list.id] ? (
+                {/* Add Task Button/Form */}
+                {showTaskInput[list.id] ? (
                   <div className="add-card-form">
                     <textarea
                       placeholder="Enter a title for this card..."
-                      value={newCardTitles[list.id] || ""}
+                      value={newTaskNames[list.id] || ""}
                       onChange={(e) =>
-                        setNewCardTitles({
-                          ...newCardTitles,
+                        setNewTaskNames({
+                          ...newTaskNames,
                           [list.id]: e.target.value,
                         })
                       }
@@ -206,14 +570,17 @@ export default function Board() {
                     <div className="add-card-actions">
                       <button
                         className="btn-add-card"
-                        onClick={() => handleAddCard(list.id)}
+                        onClick={() => createTask(list.id)}
                       >
                         Add card
                       </button>
                       <button
                         className="btn-cancel-card"
                         onClick={() =>
-                          setShowAddCard({ ...showAddCard, [list.id]: false })
+                          setShowTaskInput({
+                            ...showTaskInput,
+                            [list.id]: false,
+                          })
                         }
                       >
                         ✕
@@ -224,32 +591,43 @@ export default function Board() {
                   <button
                     className="add-card-btn"
                     onClick={() =>
-                      setShowAddCard({ ...showAddCard, [list.id]: true })
+                      setShowTaskInput({ ...showTaskInput, [list.id]: true })
                     }
                   >
-                    + Add a card
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                      <img
+                        src="/src/resources/Plus.png"
+                        alt="Plus"
+                        style={{
+                          marginRight: "7px",
+                          width: "14px",
+                          height: "14px",
+                        }}
+                      />
+                      <span>Add a card</span>
+                    </div>
                   </button>
                 )}
               </div>
             ))}
 
-            {/* Add List */}
-            {showAddList ? (
+            {/* Add New List Button/Form */}
+            {isAddingList ? (
               <div className="board-list add-list-form">
                 <input
                   type="text"
                   placeholder="Enter list title..."
-                  value={newListTitle}
-                  onChange={(e) => setNewListTitle(e.target.value)}
+                  value={newListName}
+                  onChange={(e) => setNewListName(e.target.value)}
                   autoFocus
                 />
                 <div className="add-list-actions">
-                  <button className="btn-add-list" onClick={handleAddList}>
+                  <button className="btn-add-list" onClick={createList}>
                     Add list
                   </button>
                   <button
                     className="btn-cancel-list"
-                    onClick={() => setShowAddList(false)}
+                    onClick={() => setIsAddingList(false)}
                   >
                     ✕
                   </button>
@@ -258,7 +636,7 @@ export default function Board() {
             ) : (
               <button
                 className="add-list-btn"
-                onClick={() => setShowAddList(true)}
+                onClick={() => setIsAddingList(true)}
               >
                 + Add another list
               </button>
@@ -266,6 +644,26 @@ export default function Board() {
           </div>
         </div>
       </div>
+
+      {/* Delete List Popup */}
+      {listToDelete && (
+        <ConfirmDeleteModal
+          title="Delete List?"
+          message="Are you sure you want to delete this list and all its tasks?"
+          onConfirm={deleteListConfirmed}
+          onClose={() => setListToDelete(null)}
+        />
+      )}
+
+      {/* Delete Task Popup */}
+      {taskToDelete && (
+        <ConfirmDeleteModal
+          title="Delete Task?"
+          message="Are you sure you want to delete this task?"
+          onConfirm={deleteTaskConfirmed}
+          onClose={() => setTaskToDelete(null)}
+        />
+      )}
 
       <ToastContainer position="top-center" autoClose={2500} />
     </div>
