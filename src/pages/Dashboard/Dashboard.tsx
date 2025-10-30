@@ -227,7 +227,11 @@ export default function Dashboard() {
     <div>
       {/* Navbar */}
       <div className="navbar">
-        <div className="navbar-logo">
+        <div
+          className="navbar-logo"
+          onClick={() => navigate("/dashboard")}
+          style={{ cursor: "pointer" }}
+        >
           <img src="/src/resources/Trello_DashboardLogo.png" alt="Trello" />
         </div>
       </div>
@@ -237,7 +241,7 @@ export default function Dashboard() {
         <div className="sidebar">
           <h3 className="workspaceh3">YOUR WORKSPACES</h3>
 
-          <div className="sidebar-item">
+          <div className="sidebar-item" onClick={() => navigate("/board")}>
             <img src="/src/resources/Sidebar_Menu.png" alt="" /> Boards
           </div>
           <div className="sidebar-item">

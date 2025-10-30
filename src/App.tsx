@@ -4,6 +4,7 @@ import { store } from "./stores/store";
 import Register from "./pages/RegisterPage/Register";
 import Login from "./pages/LoginPage/Login";
 import Dashboard from "./pages/Dashboard/Dashboard";
+import Board from "./pages/Boards/Boards";
 
 function App() {
   return (
@@ -18,6 +19,9 @@ function App() {
 
           {/* Dashboard page*/}
           <Route path="/dashboard" element={<Dashboard />} />
+
+          {/* Board page*/}
+          <Route path="/board" element={<Board />} />
         </Routes>
       </BrowserRouter>
     </Provider>
