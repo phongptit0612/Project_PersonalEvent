@@ -116,11 +116,10 @@ export default function NewBoardModal({
               {DEFAULT_BACKGROUNDS.map((bg, index) => (
                 <div
                   key={index}
-                  className={`background-option ${
-                    selectedBackground === bg && backgroundType === "image"
-                      ? "selected"
-                      : ""
-                  }`}
+                  className={`background-option ${selectedBackground === bg && backgroundType === "image"
+                    ? "selected"
+                    : ""
+                    }`}
                   style={{ backgroundImage: `url(${bg})` }}
                   onClick={() => handleBackgroundClick(bg)}
                 ></div>
@@ -135,11 +134,10 @@ export default function NewBoardModal({
               {DEFAULT_COLORS.map((color, index) => (
                 <div
                   key={index}
-                  className={`color-option ${
-                    selectedBackground === color && backgroundType === "color"
-                      ? "selected"
-                      : ""
-                  }`}
+                  className={`color-option ${selectedBackground === color && backgroundType === "color"
+                    ? "selected"
+                    : ""
+                    }`}
                   style={{ background: color }}
                   onClick={() => handleColorClick(color)}
                 ></div>
