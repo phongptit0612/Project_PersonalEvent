@@ -55,7 +55,7 @@
           "lists": []
         },
         {
-          "title": "asdad",
+          "title": "Test 5",
           "background": "https://images.unsplash.com/photo-1511497584788-876760111969?w=400",
           "backgroundType": "image",
           "isStarred": false,
@@ -65,13 +65,33 @@
           "lists": []
         },
         {
-          "title": "asdad",
+          "title": "Test 3",
           "background": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400",
           "backgroundType": "image",
           "isStarred": false,
           "isClosed": false,
-          "id": "1761528344235",
-          "createdAt": "2025-10-27T01:25:44.235Z",
+          "id": "1761876343490",
+          "createdAt": "2025-10-31T02:05:43.490Z",
+          "lists": []
+        },
+        {
+          "title": "adasda",
+          "background": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400",
+          "backgroundType": "image",
+          "isStarred": false,
+          "isClosed": true,
+          "id": "1761876345230",
+          "createdAt": "2025-10-31T02:05:45.230Z",
+          "lists": []
+        },
+        {
+          "title": "Test 4",
+          "background": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400",
+          "backgroundType": "image",
+          "isStarred": false,
+          "isClosed": false,
+          "id": "1761876347469",
+          "createdAt": "2025-10-31T02:05:47.469Z",
           "lists": []
         }
       ]

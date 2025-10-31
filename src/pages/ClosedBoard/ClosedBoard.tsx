@@ -2,7 +2,11 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import { useAppSelector, useAppDispatch } from "../../stores/hook";
-import { setBoards, deleteBoard } from "../../stores/boardSlice";
+import {
+  setBoards,
+  deleteBoard,
+  setCurrentBoardId,
+} from "../../stores/boardSlice";
 import axios from "axios";
 import ConfirmDeleteModal from "../Boards/Modal/ConfirmDeleteModal";
 import "../Dashboard/Dashboard.css";
@@ -113,6 +117,14 @@ export default function ClosedBoards() {
   };
 
   // ========================================
+  // NAVIGATE TO BOARD
+  // ========================================
+  const handleBoardClick = (boardId: string) => {
+    dispatch(setCurrentBoardId(boardId));
+    navigate("/board");
+  };
+
+  // ========================================
   // DELETE BOARD PERMANENTLY
   // ========================================
   const deleteBoardPermanently = () => {
@@ -170,14 +182,14 @@ export default function ClosedBoards() {
             <button className="add-board-btn">+</button>
           </div>
 
-          {/* Show all boards */}
+          {/* Show all boards (exclude closed boards) */}
           {boards
             .filter((b) => !b.isClosed)
             .map((board) => (
               <div
                 key={board.id}
                 className="sidebar-board-item"
-                onClick={() => navigate("/dashboard")}
+                onClick={() => handleBoardClick(board.id)}
                 style={{ cursor: "pointer" }}
               >
                 <div
