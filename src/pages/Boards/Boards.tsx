@@ -12,6 +12,7 @@ import {
   toggleStar,
   setBoards,
   setCurrentBoardId,
+  updateBoard,
 } from "../../stores/boardSlice";
 import axios from "axios";
 import ConfirmDeleteModal from "./Modal/ConfirmDeleteModal";
@@ -87,6 +88,7 @@ export default function Board() {
     task: Task;
     listId: string;
   } | null>(null);
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false);
 
   // ========================================
   // LOAD DATA WHEN PAGE OPENS
@@ -161,6 +163,23 @@ export default function Board() {
   // ========================================
   const handleBoardClick = (boardId: string) => {
     dispatch(setCurrentBoardId(boardId));
+  };
+
+  // ========================================
+  // CLOSE BOARD
+  // ========================================
+  const closeBoard = () => {
+    if (!currentBoard) return;
+
+    const updatedBoard: Board = {
+      ...currentBoard,
+      isClosed: true,
+    };
+
+    dispatch(updateBoard(updatedBoard));
+    setShowCloseConfirm(false);
+    toast.success("Board closed!");
+    setTimeout(() => navigate("/dashboard"), 1000);
   };
 
   // ========================================
@@ -305,13 +324,19 @@ export default function Board() {
         <div className="sidebar">
           <h3 className="workspaceh3">YOUR WORKSPACES</h3>
 
-          <div className="sidebar-item active">
+          <div
+            className="sidebar-item active"
+            onClick={() => navigate("/dashboard")}
+          >
             <img src="/src/resources/Sidebar_Menu.png" alt="" /> Boards
           </div>
           <div className="sidebar-item" onClick={() => navigate("/dashboard")}>
             <img src="/src/resources/Sidebar_Star.png" alt="" /> Starred Boards
           </div>
-          <div className="sidebar-item">
+          <div
+            className="sidebar-item"
+            onClick={() => navigate("/closedboards")}
+          >
             <img src="/src/resources/Sidebar_Closed.png" alt="" /> Closed Boards
           </div>
 
@@ -331,26 +356,28 @@ export default function Board() {
             <button className="add-board-btn">+</button>
           </div>
 
-          {/* Show all boards */}
-          {boards.map((board) => (
-            <div
-              key={board.id}
-              className="sidebar-board-item"
-              onClick={() => handleBoardClick(board.id)}
-              style={{ cursor: "pointer" }}
-            >
+          {/* Show all boards (exclude closed boards) */}
+          {boards
+            .filter((b) => !b.isClosed)
+            .map((board) => (
               <div
-                className="board-thumbnail"
-                style={{
-                  background:
-                    board.backgroundType === "color"
-                      ? board.background
-                      : `url(${board.background})`,
-                }}
-              ></div>
-              <span>{board.title}</span>
-            </div>
-          ))}
+                key={board.id}
+                className="sidebar-board-item"
+                onClick={() => handleBoardClick(board.id)}
+                style={{ cursor: "pointer" }}
+              >
+                <div
+                  className="board-thumbnail"
+                  style={{
+                    background:
+                      board.backgroundType === "color"
+                        ? board.background
+                        : `url(${board.background})`,
+                  }}
+                ></div>
+                <span>{board.title}</span>
+              </div>
+            ))}
         </div>
 
         {/* Main Board Area */}
@@ -371,7 +398,10 @@ export default function Board() {
                 <img src="/src/resources/List.png" alt="" />
                 Table
               </span>
-              <span className="board-btn">
+              <span
+                className="board-btn"
+                onClick={() => setShowCloseConfirm(true)}
+              >
                 <img src="/src/resources/Close this.png" alt="" />
                 Close this board
               </span>
@@ -666,6 +696,16 @@ export default function Board() {
           message="You wont be able to revert this!"
           onConfirm={deleteTaskConfirmed}
           onClose={() => setTaskToDelete(null)}
+        />
+      )}
+
+      {/* Close Board Confirmation */}
+      {showCloseConfirm && (
+        <ConfirmDeleteModal
+          title="Close this board?"
+          message="You can reopen it later from closed boards."
+          onConfirm={closeBoard}
+          onClose={() => setShowCloseConfirm(false)}
         />
       )}
 

@@ -39,7 +39,7 @@
           "background": "linear-gradient(122.53deg, #00FF2F 0%, #00FFC8 100%)",
           "backgroundType": "color",
           "isStarred": true,
-          "isClosed": false,
+          "isClosed": true,
           "id": "1761527257276",
           "createdAt": "2025-10-27T01:07:37.276Z",
           "lists": []
@@ -48,7 +48,7 @@
           "title": "Test2",
           "background": "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=400",
           "backgroundType": "image",
-          "isStarred": false,
+          "isStarred": true,
           "isClosed": false,
           "id": "1761528336459",
           "createdAt": "2025-10-27T01:25:36.459Z",

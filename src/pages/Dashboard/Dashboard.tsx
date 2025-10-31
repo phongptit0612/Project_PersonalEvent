@@ -230,7 +230,10 @@ export default function Dashboard() {
           <div className="sidebar-item">
             <img src="/src/resources/Sidebar_Star.png" alt="" /> Starred Boards
           </div>
-          <div className="sidebar-item">
+          <div
+            className="sidebar-item"
+            onClick={() => navigate("/closedboards")}
+          >
             <img src="/src/resources/Sidebar_Closed.png" alt="" /> Closed Boards
           </div>
 
@@ -327,7 +330,6 @@ export default function Dashboard() {
           )}
         </div>
       </div>
-
       {/* Modals */}
       {(showModal || editingBoard) && (
         <NewBoardModal

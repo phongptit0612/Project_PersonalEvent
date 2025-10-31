@@ -5,6 +5,7 @@ import Register from "./pages/RegisterPage/Register";
 import Login from "./pages/LoginPage/Login";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Board from "./pages/Boards/Boards";
+import ClosedBoards from "./pages/ClosedBoard/ClosedBoard";
 
 function App() {
   return (
@@ -22,6 +23,9 @@ function App() {
 
           {/* Board page*/}
           <Route path="/board" element={<Board />} />
+
+          {/* Closed Boards page*/}
+          <Route path="/closedboards" element={<ClosedBoards />} />
         </Routes>
       </BrowserRouter>
     </Provider>
