@@ -11,6 +11,7 @@ import {
   deleteTask,
   toggleStar,
   setBoards,
+  setCurrentBoardId,
 } from "../../stores/boardSlice";
 import axios from "axios";
 import ConfirmDeleteModal from "./Modal/ConfirmDeleteModal";
@@ -156,6 +157,13 @@ export default function Board() {
   };
 
   // ========================================
+  // NAVIGATE TO BOARD
+  // ========================================
+  const handleBoardClick = (boardId: string) => {
+    dispatch(setCurrentBoardId(boardId));
+  };
+
+  // ========================================
   // LIST FUNCTIONS
   // ========================================
 
@@ -233,7 +241,7 @@ export default function Board() {
     if (!taskBeingEdited || !currentBoardId) return;
 
     if (!newTitle.trim()) {
-      toast.error("Please enter a list name");
+      toast.error("Please enter a task name");
       return;
     }
 
@@ -323,9 +331,14 @@ export default function Board() {
             <button className="add-board-btn">+</button>
           </div>
 
-          {/* Show first 4 boards */}
-          {boards.slice(0, 4).map((board) => (
-            <div key={board.id} className="sidebar-board-item">
+          {/* Show all boards */}
+          {boards.map((board) => (
+            <div
+              key={board.id}
+              className="sidebar-board-item"
+              onClick={() => handleBoardClick(board.id)}
+              style={{ cursor: "pointer" }}
+            >
               <div
                 className="board-thumbnail"
                 style={{

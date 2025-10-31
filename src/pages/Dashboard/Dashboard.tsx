@@ -10,8 +10,6 @@ import {
   setBoards,
   addBoard,
   updateBoard,
-  deleteBoard,
-  toggleStar,
   setCurrentBoardId,
 } from "../../stores/boardSlice";
 
@@ -60,7 +58,6 @@ export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [editingBoard, setEditingBoard] = useState<Board | null>(null);
-  const [deletingBoard, setDeletingBoard] = useState<Board | null>(null);
 
   // ---------- API Functions ----------
   const loadUserData = useCallback(
@@ -155,31 +152,6 @@ export default function Dashboard() {
     setEditingBoard(null);
   };
 
-  const handleDeleteBoard = async () => {
-    if (!deletingBoard) return;
-
-    // 1. Update Redux first
-    dispatch(deleteBoard(deletingBoard.id));
-
-    // 2. Update server
-    const updatedBoards = boards.filter((b) => b.id !== deletingBoard.id);
-    await updateBoardsOnServer(updatedBoards);
-
-    toast.success("Board deleted successfully!");
-    setDeletingBoard(null);
-  };
-
-  const toggleStarBoard = async (boardId: string) => {
-    // 1. Update Redux first
-    dispatch(toggleStar(boardId));
-
-    // 2. Update server
-    const updatedBoards = boards.map((b) =>
-      b.id === boardId ? { ...b, isStarred: !b.isStarred } : b
-    );
-    await updateBoardsOnServer(updatedBoards);
-  };
-
   const handleBoardClick = (boardId: string) => {
     dispatch(setCurrentBoardId(boardId));
     navigate("/board");
@@ -216,33 +188,16 @@ export default function Dashboard() {
 
       <div className="board-card-actions">
         <button
-          className="board-action-btn"
-          onClick={(e) => {
-            e.stopPropagation();
-            toggleStarBoard(board.id);
-          }}
-        >
-          {board.isStarred ? "★" : "☆"}
-        </button>
-
-        <button
-          className="board-action-btn"
+          className="board-edit-btn"
           onClick={(e) => {
             e.stopPropagation();
             setEditingBoard(board);
           }}
         >
-          Edit
-        </button>
-
-        <button
-          className="board-action-btn"
-          onClick={(e) => {
-            e.stopPropagation();
-            setDeletingBoard(board);
-          }}
-        >
-          Delete
+          <span className="edit-icon">
+            <img src="src/resources/Frame.png" alt="" />
+          </span>{" "}
+          Edit this board
         </button>
       </div>
     </div>
@@ -384,35 +339,6 @@ export default function Dashboard() {
             setEditingBoard(null);
           }}
         />
-      )}
-
-      {/* Delete Confirmation */}
-      {deletingBoard && (
-        <div className="modal-overlay" onClick={() => setDeletingBoard(null)}>
-          <div
-            className="modal-content confirm-modal"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="modal-icon">
-              <img src="/src/resources/Border.png" alt="" />
-            </div>
-
-            <h2>Are you sure?</h2>
-            <p>You won't be able to revert this!</p>
-
-            <div className="modal-buttons">
-              <button className="btn btn-delete" onClick={handleDeleteBoard}>
-                Yes, delete it!
-              </button>
-              <button
-                className="btn btn-cancel2"
-                onClick={() => setDeletingBoard(null)}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
       )}
 
       <ToastContainer position="top-center" autoClose={2500} />

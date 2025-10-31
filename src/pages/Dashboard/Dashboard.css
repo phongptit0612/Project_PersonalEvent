@@ -536,3 +536,39 @@ html {
 .btn-cancel2:hover {
     background-color: #be2d2d;
 }
+
+
+.board-edit-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #44546f;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    width: 168px;
+    height: 32px;
+    top: 84.6px;
+    left: 15px;
+    opacity: 1;
+    border-radius: 3px;
+    border: none;
+    cursor: pointer;
+}
+
+.board-edit-btn:hover {
+    background-color: #2c3e50;
+}
+
+.edit-icon {
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+}
+
+.edit-icon img {
+    width: 16px;
+    height: 16px;
+    display: block;
+}
