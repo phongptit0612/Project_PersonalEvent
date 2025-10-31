@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "react-toastify"; // ✅ Add this line
 import "./TaskDetailModal.css";
 import RichTextEditor from "./RichTextEditot";
 
@@ -42,14 +43,21 @@ export default function TaskDetailModal({
     setIsEditingDescription(false);
   };
 
+  // ✅ Updated validation logic
   const handleTitleBlur = () => {
-    if (title.trim() && title !== task.title) {
+    const trimmedTitle = title.trim();
+
+    if (trimmedTitle === "") {
+      toast.error("Please enter a task name");
+      setTitle(task.title); // Reset to original if empty
+      return;
+    }
+
+    if (trimmedTitle !== task.title) {
       onUpdateTask({
         ...task,
-        title: title.trim(),
+        title: trimmedTitle,
       });
-    } else if (!title.trim()) {
-      setTitle(task.title);
     }
   };
 
@@ -72,7 +80,7 @@ export default function TaskDetailModal({
         {/* Header */}
         <div className="task-modal-header">
           <div className="task-title-section">
-            <span 
+            <span
               className={`task-icon ${isCompleted ? 'task-icon-completed' : ''}`}
               onClick={handleToggleComplete}
             >
@@ -88,6 +96,11 @@ export default function TaskDetailModal({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               onBlur={handleTitleBlur}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.currentTarget.blur();
+                }
+              }}
             />
           </div>
           <div className="task-list-info">

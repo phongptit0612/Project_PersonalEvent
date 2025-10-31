@@ -511,11 +511,11 @@ export default function Board() {
                           listTitle: list.title,
                         })
                       }
-                     style={{
+                      style={{
                         display: "flex",
                         alignItems: "center",
                         cursor: "pointer",
-                     }}
+                      }}
                     >
                       {task.isCompleted && (
                         <span style={{ marginRight: "8px" }}> <img src="/src/resources/checkmark.png" alt="" /></span>
