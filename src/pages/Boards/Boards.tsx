@@ -16,6 +16,7 @@ import {
 } from "../../stores/boardSlice";
 import axios from "axios";
 import ConfirmDeleteModal from "./Modal/ConfirmDeleteModal";
+import TaskDetailModal from "./Modal/TaskDetailModal";
 import "../Dashboard/Dashboard.css";
 import "./Boards.css";
 
@@ -26,6 +27,7 @@ interface Task {
   id: string;
   title: string;
   isCompleted: boolean;
+  description?: string;
 }
 
 interface List {
@@ -80,9 +82,10 @@ export default function Board() {
   const [newTaskNames, setNewTaskNames] = useState<{
     [listId: string]: string;
   }>({});
-  const [taskBeingEdited, setTaskBeingEdited] = useState<{
+  const [taskDetailModal, setTaskDetailModal] = useState<{
     task: Task;
     listId: string;
+    listTitle: string;
   } | null>(null);
   const [taskToDelete, setTaskToDelete] = useState<{
     task: Task;
@@ -255,25 +258,17 @@ export default function Board() {
     toast.success("Task created!");
   };
 
-  // Save edited task title
-  const saveTaskTitle = (newTitle: string) => {
-    if (!taskBeingEdited || !currentBoardId) return;
+  // Update task from modal
+  const updateTaskFromModal = (updatedTask: Task) => {
+    if (!taskDetailModal || !currentBoardId) return;
 
-    if (!newTitle.trim()) {
-      toast.error("Please enter a task name");
-      return;
-    }
-
-    const updated: Task = { ...taskBeingEdited.task, title: newTitle };
     dispatch(
       updateTask({
         boardId: currentBoardId,
-        listId: taskBeingEdited.listId,
-        task: updated,
+        listId: taskDetailModal.listId,
+        task: updatedTask,
       })
     );
-    setTaskBeingEdited(null);
-    toast.success("Task updated!");
   };
 
   // Delete task
@@ -509,80 +504,23 @@ export default function Board() {
                     <div
                       key={task.id}
                       className="board-card-item"
-                      style={{
+                      onClick={() =>
+                        setTaskDetailModal({
+                          task,
+                          listId: list.id,
+                          listTitle: list.title,
+                        })
+                      }
+                     style={{
                         display: "flex",
                         alignItems: "center",
-                        justifyContent: "space-between",
-                        textDecoration: task.isCompleted
-                          ? "line-through"
-                          : "none",
-                        opacity: task.isCompleted ? 0.6 : 1,
-                      }}
+                        cursor: "pointer",
+                     }}
                     >
-                      {taskBeingEdited?.task.id === task.id &&
-                      taskBeingEdited.listId === list.id ? (
-                        // Editing task
-                        <input
-                          type="text"
-                          value={taskBeingEdited.task.title}
-                          onChange={(e) =>
-                            setTaskBeingEdited({
-                              ...taskBeingEdited,
-                              task: {
-                                ...taskBeingEdited.task,
-                                title: e.target.value,
-                              },
-                            })
-                          }
-                          onBlur={() =>
-                            saveTaskTitle(taskBeingEdited.task.title)
-                          }
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter")
-                              saveTaskTitle(taskBeingEdited.task.title);
-                            if (e.key === "Escape") setTaskBeingEdited(null);
-                          }}
-                          autoFocus
-                          style={{
-                            flex: 1,
-                            marginRight: "8px",
-                            padding: "4px 6px",
-                            border: "1px solid #ccc",
-                            borderRadius: "4px",
-                          }}
-                        />
-                      ) : (
-                        // Normal task display
-                        <div
-                          onClick={() =>
-                            setTaskBeingEdited({ task, listId: list.id })
-                          }
-                          style={{ cursor: "pointer", flex: 1 }}
-                        >
-                          {task.isCompleted && (
-                            <span style={{ marginRight: "8px" }}>✓</span>
-                          )}
-                          {task.title}
-                        </div>
+                      {task.isCompleted && (
+                        <span style={{ marginRight: "8px" }}> <img src="/src/resources/checkmark.png" alt="" /></span>
                       )}
-
-                      {/* Delete button */}
-                      <button
-                        onClick={() =>
-                          setTaskToDelete({ task, listId: list.id })
-                        }
-                        style={{
-                          background: "none",
-                          border: "none",
-                          cursor: "pointer",
-                          fontSize: "16px",
-                          color: "#eb5a46",
-                          marginLeft: "8px",
-                        }}
-                        title="Delete task"
-                      >
-                        ✕
-                      </button>
+                      {task.title}
                     </div>
                   ))}
                 </div>
@@ -679,6 +617,25 @@ export default function Board() {
         </div>
       </div>
 
+      {/* Task Detail Modal */}
+      {taskDetailModal && (
+        <TaskDetailModal
+          task={taskDetailModal.task}
+          listTitle={taskDetailModal.listTitle}
+          onClose={() => setTaskDetailModal(null)}
+          onUpdateTask={(updatedTask) => {
+            updateTaskFromModal(updatedTask);
+          }}
+          onDeleteTask={() => {
+            setTaskDetailModal(null);
+            setTaskToDelete({
+              task: taskDetailModal.task,
+              listId: taskDetailModal.listId,
+            });
+          }}
+        />
+      )}
+
       {/* Delete List Popup */}
       {listToDelete && (
         <ConfirmDeleteModal
@@ -702,8 +659,8 @@ export default function Board() {
       {/* Close Board Confirmation */}
       {showCloseConfirm && (
         <ConfirmDeleteModal
-          title="Close this board?"
-          message="You can reopen it later from closed boards."
+          title="Are you sure ?"
+          message="You wont be able to revert this!"
           onConfirm={closeBoard}
           onClose={() => setShowCloseConfirm(false)}
         />

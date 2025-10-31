@@ -23,11 +23,16 @@
                 {
                   "id": "1761792563411",
                   "title": "Rent Dj",
-                  "isCompleted": false
+                  "isCompleted": true
                 },
                 {
                   "id": "1761792733104",
                   "title": "Game",
+                  "isCompleted": false
+                },
+                {
+                  "id": "1761900306051",
+                  "title": "Ice Teaaaa",
                   "isCompleted": false
                 }
               ]
@@ -86,8 +91,8 @@
         },
         {
           "title": "Test 4",
-          "background": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400",
-          "backgroundType": "image",
+          "background": "linear-gradient(122.53deg, #00FFE5 0%, #004BFA 100%)",
+          "backgroundType": "color",
           "isStarred": false,
           "isClosed": false,
           "id": "1761876347469",
@@ -95,6 +100,14 @@
           "lists": []
         }
       ]
+    },
+    {
+      "id": "32a4",
+      "username": "PhongTran",
+      "email": "ptran41092@gmail.com",
+      "password": "123456@Real",
+      "created_at": "2025-10-31T02:10:08.771Z",
+      "boards": []
     }
   ]
 }

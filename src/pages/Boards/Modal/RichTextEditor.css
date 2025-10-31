@@ -1,0 +1,46 @@
+.rich-editor-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.toolbar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+.toolbar button {
+    background: #f4f5f7;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #172b4d;
+    font-weight: 500;
+    font-size: 14px;
+    user-select: none;
+}
+
+.toolbar button.active {
+    background-color: #0079bf;
+    color: #fff;
+}
+
+.toolbar button:hover {
+    background: #ebecf0;
+}
+
+.tiptap-editor {
+    background: #fff;
+    min-height: 120px;
+    border: 1px solid #dfe1e6;
+    border-radius: 6px;
+    padding: 8px;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.tiptap-editor p {
+    margin: 0;
+}
