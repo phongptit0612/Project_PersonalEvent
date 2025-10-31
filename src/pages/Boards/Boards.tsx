@@ -183,6 +183,11 @@ export default function Board() {
   const saveListTitle = (newTitle: string) => {
     if (!listBeingEdited || !currentBoardId) return;
 
+    if (!newTitle.trim()) {
+      toast.error("Please enter a list name");
+      return;
+    }
+
     const updated: List = { ...listBeingEdited, title: newTitle };
     dispatch(updateList({ boardId: currentBoardId, list: updated }));
     setListBeingEdited(null);
@@ -226,6 +231,11 @@ export default function Board() {
   // Save edited task title
   const saveTaskTitle = (newTitle: string) => {
     if (!taskBeingEdited || !currentBoardId) return;
+
+    if (!newTitle.trim()) {
+      toast.error("Please enter a list name");
+      return;
+    }
 
     const updated: Task = { ...taskBeingEdited.task, title: newTitle };
     dispatch(
@@ -407,8 +417,6 @@ export default function Board() {
                         >
                           ⋯
                         </button>
-
-                        {/* Menu dropdown */}
                         {openMenuId === list.id && (
                           <div
                             tabIndex={0}
@@ -432,15 +440,7 @@ export default function Board() {
                                 setListBeingEdited({ ...list });
                                 setOpenMenuId(null);
                               }}
-                              style={{
-                                display: "block",
-                                width: "100%",
-                                padding: "8px 12px",
-                                textAlign: "left",
-                                background: "none",
-                                border: "none",
-                                cursor: "pointer",
-                              }}
+                              className="edit-button-dropdown"
                             >
                               Edit
                             </button>
@@ -449,16 +449,7 @@ export default function Board() {
                                 setListToDelete(list.id);
                                 setOpenMenuId(null);
                               }}
-                              style={{
-                                display: "block",
-                                width: "100%",
-                                padding: "8px 12px",
-                                textAlign: "left",
-                                background: "none",
-                                border: "none",
-                                cursor: "pointer",
-                                color: "#eb5a46",
-                              }}
+                              className="delete-button-dropdown"
                             >
                               Delete
                             </button>
@@ -648,8 +639,8 @@ export default function Board() {
       {/* Delete List Popup */}
       {listToDelete && (
         <ConfirmDeleteModal
-          title="Delete List?"
-          message="Are you sure you want to delete this list and all its tasks?"
+          title="Are you sure ?"
+          message="You wont be able to revert this!"
           onConfirm={deleteListConfirmed}
           onClose={() => setListToDelete(null)}
         />
@@ -658,8 +649,8 @@ export default function Board() {
       {/* Delete Task Popup */}
       {taskToDelete && (
         <ConfirmDeleteModal
-          title="Delete Task?"
-          message="Are you sure you want to delete this task?"
+          title="Are you sure ?"
+          message="You wont be able to revert this!"
           onConfirm={deleteTaskConfirmed}
           onClose={() => setTaskToDelete(null)}
         />

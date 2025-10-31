@@ -18,21 +18,16 @@
           "lists": [
             {
               "id": "1761788156300",
-              "title": "adsa",
+              "title": "Todo",
               "tasks": [
                 {
                   "id": "1761792563411",
-                  "title": "asdasd",
-                  "isCompleted": false
-                },
-                {
-                  "id": "1761792569097",
-                  "title": "adasd",
+                  "title": "Rent DJ",
                   "isCompleted": false
                 },
                 {
                   "id": "1761792733104",
-                  "title": "asdas",
+                  "title": "Game",
                   "isCompleted": false
                 }
               ]
